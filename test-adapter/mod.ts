@@ -29,7 +29,7 @@ const anonymousNames: Iterator<string, never> = (function* () {
   }
 })();
 
-export function createTestContainer(
+export function createTestAdapter(
   options: TestAdapterOptions,
 ): TestAdapter {
   let setups: TestOp[] = [];
