@@ -1,0 +1,21 @@
+{
+  "name": "@frontside/watch",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./cli": "./main.ts"
+  },
+  "imports": {
+    "effection": "npm:effection@^4.0.0-alpha.6",
+    "ignore": "npm:ignore@^7.0.3",
+    "@std/fs": "jsr:@std/fs",
+    "@std/path": "jsr:@std/path",
+    "chokidar": "npm:chokidar@^4.0.3"
+  },
+  "lint": {
+    "exclude": ["docs/esm"],
+    "rules": {
+      "exclude": ["prefer-const", "require-yield"]
+    }
+  }
+}
