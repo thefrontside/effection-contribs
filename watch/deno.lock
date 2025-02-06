@@ -18,7 +18,9 @@
     "npm:fp-ts@*": "2.16.9",
     "npm:fs-fixture@*": "2.7.0",
     "npm:ignore@*": "6.0.2",
-    "npm:ignore@^7.0.3": "7.0.3"
+    "npm:ignore@^7.0.3": "7.0.3",
+    "npm:zod-opts@*": "0.1.8",
+    "npm:zod@*": "3.24.1"
   },
   "jsr": {
     "@effection-contrib/timebox@0.1.0": {
@@ -96,6 +98,15 @@
     },
     "undici-types@6.19.8": {
       "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
+    },
+    "zod-opts@0.1.8": {
+      "integrity": "sha512-YZhdEcIL3D2W9fXCCf/UBgrBS90c8w25RTteh5GihGIZzadYr/qIFxyM2L98zHUkZ2S8MMxwn3ny8fzPNnvPlg==",
+      "dependencies": [
+        "zod"
+      ]
+    },
+    "zod@3.24.1": {
+      "integrity": "sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A=="
     }
   },
   "workspace": {
@@ -104,7 +115,9 @@
       "jsr:@std/path@*",
       "npm:chokidar@^4.0.3",
       "npm:effection@^4.0.0-alpha.6",
-      "npm:ignore@^7.0.3"
+      "npm:ignore@^7.0.3",
+      "npm:zod-opts@*",
+      "npm:zod@*"
     ]
   }
 }

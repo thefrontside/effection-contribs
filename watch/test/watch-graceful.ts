@@ -4,6 +4,6 @@ await main(function* () {
   try {
     yield* suspend();
   } finally {
-    console.log("done!");
+    console.log("done");
   }
 });

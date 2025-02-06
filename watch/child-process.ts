@@ -4,7 +4,6 @@ import {
   action,
   createSignal,
   resource,
-  scoped,
   spawn,
   withResolvers,
 } from "effection";
@@ -49,7 +48,6 @@ export function useProcess(command: string): Operation<Process> {
       stdout.send(String(chunk));
     };
     let onstderr = (chunk: unknown) => {
-      console.log({ [`stderr: ${command}`]: String(chunk) });
       stderr.send(String(chunk));
     };
     let onclose = (code: number, signal?: NodeJS.Signals) => {

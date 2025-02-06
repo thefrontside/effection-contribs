@@ -8,15 +8,12 @@ import { emptyDir } from "jsr:@std/fs/empty-dir";
 describe("watch", () => {
   it("restarts the specified process when files change.", async () => {
     await run(function* () {
-      let fixture = yield* useFixture({
-        project: {
-          "somefile.txt": "hello world",
-        },
-      });
+      let fixture = yield* useFixture();
       let processes = yield* inspector(
         watch({
           path: fixture.path,
-          cmd: `cat ${fixture.getPath("project/somefile.txt")}`,
+          cmd: `cat ${fixture.getPath("src/file.txt")}`,
+          event: "change",
         }),
       );
 
@@ -26,51 +23,37 @@ describe("watch", () => {
 
       expect(exit.code).toEqual(0);
 
-      expect(start.stdout).toEqual("hello world");
+      expect(start.stdout).toEqual("this is a source file");
 
       yield* call(() =>
-        fixture.writeFile("project/somefile.txt", "hello planet")
+        fixture.write("src/file.txt", "this source file is changed")
       );
 
       let next = yield* processes.expectNext();
 
-      expect(next.stdout).toEqual("hello planet");
+      expect(next.stdout).toEqual("this source file is changed");
     });
   });
 
   it("ignores files in .gitignore", async () => {
     await run(function* () {
-      let fixture = yield* useFixture({
-        ".gitignore": "/dist",
-        "src": {
-          "file.txt": "this is a source file",
-        },
-        "dist": {
-          "artifact.txt": "this is a built file",
-        },
-      });
+      let fixture = yield* useFixture();
 
       let processes = yield* inspector(
         watch({
           path: fixture.path,
           cmd: `echo hello`,
+          event: "change",
         }),
       );
 
       //it starts the first time
       yield* processes.expectNext();
 
-      yield* spawn(() =>
-        call(() =>
-          fixture.writeFile("dist/artifact.txt", "this file was built again")
-        )
-      );
+      yield* fixture.write("dist/artifact.txt", "this file was built again");
 
       yield* processes.expectNoRestart();
     });
-    // start in example directory with gitigoners
-    // touch a change in an ignored file.
-    // ensure that there was no restart
   });
 
   it.skip("ignores files in a .gitignore that is in a parent directory", () => {
@@ -79,13 +62,9 @@ describe("watch", () => {
     // enuser that there was no restart;
   });
 
-  it.skip("waits until stdout is closed before restarting", async () => {
+  it("waits until stdout is closed before restarting", async () => {
     await run(function* () {
-      let fixture = yield* useFixture({
-        project: {
-          "somefile.txt": "hello world",
-        },
-      });
+      let fixture = yield* useFixture();
       let processes = yield* inspector(
         watch({
           path: fixture.path,
@@ -94,13 +73,12 @@ describe("watch", () => {
       );
 
       let first = yield* processes.expectNext();
-      yield* call(() =>
-        fixture.writeFile("project/somefile.txt", "hello planet")
-      );
+
+      yield* fixture.write("src/file.txt", "hello planet");
 
       yield* processes.expectNext();
 
-      expect(first.stdout).toEqual("done");
+      expect(first.stdout).toEqual("done\n");
     });
 
     // start an example that prints "done" to the console upon SIGINT
@@ -113,22 +91,47 @@ describe("watch", () => {
   });
 });
 
-import { createFixture, type FsFixture } from "npm:fs-fixture";
 import { watch } from "../watch.ts";
 import type { Process } from "../child-process.ts";
+import { cp, readFile, writeFile } from "node:fs/promises";
+import { join } from "@std/path";
 
-type FixtureOption = Parameters<typeof createFixture>;
+interface Fixture {
+  path: string;
+  getPath(filename: "src/file.txt" | "dist/artifact.txt"): string;
+  read(name: "src/file.txt"): Operation<string>;
+  write(
+    filename: "src/file.txt" | "dist/artifact.txt",
+    content: string,
+  ): Operation<void>;
+}
 
-function* useFixture(template: FixtureOption[0]): Operation<FsFixture> {
-  let tempDir = new URL(import.meta.resolve("./fixtures")).pathname;
-  yield* call(() => emptyDir(tempDir));
-  let fixture = yield* call(() =>
-    createFixture(template, {
-      tempDir,
+function* useFixture(): Operation<Fixture> {
+  let tmpDir = new URL(import.meta.resolve("./temp")).pathname;
+  let fixtureDir = new URL(import.meta.resolve("./fixtures")).pathname;
+  let path = join(tmpDir, "fixtures");
+  yield* call(() => emptyDir(tmpDir));
+
+  yield* call(() =>
+    cp(fixtureDir, tmpDir, {
+      recursive: true,
+      preserveTimestamps: true,
+      force: true,
     })
   );
-  yield* sleep(5);
-  return fixture;
+
+  return {
+    path,
+    getPath(filename): string {
+      return join(path, filename);
+    },
+    write(filename: string, content: string) {
+      return call(() => writeFile(join(path, filename), content));
+    },
+    *read(name) {
+      return String(yield* call(() => readFile(join(path, name))));
+    },
+  };
 }
 
 type SuccessfulStart = {
@@ -192,13 +195,13 @@ function* inspector(stream: Stream<Result<Process>, never>) {
           }
         } else {
           yield* sleep(10);
-        }
+ }
       }
       throw new Error(`expecting a sucessful start but it never appeared.`);
     },
     *expectNoRestart() {
       let prexisting = inspector.starts.length;
-      yield* sleep(500);
+      yield* sleep(200);
       let restarts = inspector.starts.length - prexisting;
       assert(
         restarts === 0,

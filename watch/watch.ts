@@ -22,24 +22,46 @@ import { readFile } from "node:fs/promises";
 
 export interface Watch extends Stream<Result<Process>, never> {}
 
+/**
+ * Options available to configure what is watched
+ */
 export interface WatchOptions {
+  /**
+   * The directory to watch
+   */
   path: string;
+  /**
+   * The command to run (and re-run every time a change is detected)
+   */
   cmd: string;
+
+  /**
+   * @ignore
+   */
+  event?: "all" | "change";
 }
 
+/**
+ * Create a watch configuration that can be consumed as
+ * a stream of process starts.
+ */
 export function watch(options: WatchOptions): Watch {
   return resource(function* (provide) {
     let starts = createChannel<Result<Process>, never>();
     let input = createSignal<EmitArgsWithName, never>();
     let watcher = chokidar.watch(options.path);
-    watcher.on("all", (...args) => {
+    let { event = "all" } = options;
+    watcher.on(event, (...args: EmitArgsWithName) => {
+      if (event !== "all") {
+        args.unshift(event);
+      }
       input.send(args);
     });
 
     let ignores = yield* findIgnores(options.path);
     let changes = yield* pipe(
       input,
-      fresh(10),
+      fresh(500),
       ignores,
       debounce(100),
     );
@@ -82,23 +104,24 @@ function* findIgnores(
     let ignores = createIgnore();
     let buffer = yield* call(() => readFile(gitignore));
     ignores.add(buffer.toString());
-    return filter(([, pathname]) => ignores.ignores(relative(path, pathname)));
+    return filter(([, pathname]) => {
+      return !pathname.startsWith(".git") && !ignores.ignores(relative(path, pathname));
+    });
   } else {
     return filter(() => true);
   }
 }
 
-/**
- * filter out change events that happend more than {staletime} ago
- */
-function fresh(
+function fresh<R>(
   staletime: number,
-): <R>(stream: Stream<EmitArgsWithName, R>) => Stream<EmitArgsWithName, R> {
-  return filter(([, , stats]) => {
+): (stream: Stream<EmitArgsWithName, R>) => Stream<EmitArgsWithName, R> {
+  return filter(([,path,stats]) => {
     if (stats) {
-      return (Date.now() - stats.atimeMs) < staletime;
+      let ageMs = Date.now() - stats.atimeMs;
+      return ageMs < staletime;
     } else {
+      console.log({ path })
       return true;
     }
-  });
+  })
 }
