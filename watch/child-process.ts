@@ -1,5 +1,5 @@
 import { spawn as nodeSpawn } from "node:child_process";
-import { Signals } from "npm:@types/node@16.18.126";
+import type { Signals } from "npm:@types/node@16.18.126";
 
 import type { Operation, Stream } from "effection";
 import {

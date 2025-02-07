@@ -39,7 +39,7 @@ await main(function* (args) {
             yield* each.next();
           }
         });
-	yield* spawn(function* () {
+        yield* spawn(function* () {
           for (let chunk of yield* each(proc.stderr)) {
             process.stderr.write(chunk);
             yield* each.next();

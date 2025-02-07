@@ -105,7 +105,8 @@ function* findIgnores(
     let buffer = yield* call(() => readFile(gitignore));
     ignores.add(buffer.toString());
     return filter(([, pathname]) => {
-      return !pathname.startsWith(".git") && !ignores.ignores(relative(path, pathname));
+      return !pathname.startsWith(".git") &&
+        !ignores.ignores(relative(path, pathname));
     });
   } else {
     return filter(() => true);
@@ -115,13 +116,13 @@ function* findIgnores(
 function fresh<R>(
   staletime: number,
 ): (stream: Stream<EmitArgsWithName, R>) => Stream<EmitArgsWithName, R> {
-  return filter(([,path,stats]) => {
+  return filter(([, path, stats]) => {
     if (stats) {
       let ageMs = Date.now() - stats.atimeMs;
       return ageMs < staletime;
     } else {
-      console.log({ path })
+      console.log({ path });
       return true;
     }
-  })
+  });
 }
