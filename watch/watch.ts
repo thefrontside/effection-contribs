@@ -75,22 +75,24 @@ export function watch(options: WatchOptions): Watch {
   return resource(function* (provide) {
     let starts = createChannel<Result<Process>, never>();
     let input = createSignal<EmitArgsWithName, never>();
-    let watcher = chokidar.watch(options.path);
+
+    let gitignored = yield* findIgnores(options.path);
+
+    let watcher = chokidar.watch(options.path, {
+      ignoreInitial: true,
+    });
     let { event = "all" } = options;
     watcher.on(event, (...args: EmitArgsWithName) => {
       if (event !== "all") {
         args.unshift(event);
       }
-      input.send(args);
+
+      if (fresh(500)(args) && !gitignored(args)) {
+        input.send(args);
+      }
     });
 
-    let ignores = yield* findIgnores(options.path);
-    let changes = yield* pipe(
-      input,
-      fresh(500),
-      ignores,
-      debounce(100),
-    );
+    let changes = yield* pipe(input, debounce(100));
 
     yield* spawn(function* () {
       while (true) {
@@ -120,35 +122,25 @@ export function watch(options: WatchOptions): Watch {
  * locate a `.gitignore` file if it exists and use it to filter
  * out any change events against paths that are matched by it
  */
-function* findIgnores(
-  path: string,
-): Operation<
-  <R>(stream: Stream<EmitArgsWithName, R>) => Stream<EmitArgsWithName, R>
+function* findIgnores(path: string): Operation<
+  (args: EmitArgsWithName) => boolean
 > {
   let gitignore = join(path, ".gitignore");
   if (yield* call(() => exists(gitignore))) {
     let ignores = createIgnore();
     let buffer = yield* call(() => readFile(gitignore));
     ignores.add(buffer.toString());
-    return filter(([, pathname]) => {
-      return !pathname.startsWith(".git") &&
-        !ignores.ignores(relative(path, pathname));
-    });
+    return ([, pathname]) => {
+      let relativePathname = relative(path, pathname).trim();
+      return relativePathname !== "" && ignores.ignores(relativePathname);
+    };
   } else {
-    return filter(() => true);
+    return () => false;
   }
 }
 
-function fresh<R>(
-  staletime: number,
-): (stream: Stream<EmitArgsWithName, R>) => Stream<EmitArgsWithName, R> {
-  return filter(([, path, stats]) => {
-    if (stats) {
-      let ageMs = Date.now() - stats.atimeMs;
-      return ageMs < staletime;
-    } else {
-      console.log({ path });
-      return true;
-    }
-  });
+function fresh(staletime: number): (args: EmitArgsWithName) => boolean {
+  return ([, , stats]) => {
+    return !stats || (Date.now() - stats.mtimeMs) < staletime;
+  };
 }

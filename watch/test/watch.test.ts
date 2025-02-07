@@ -68,7 +68,7 @@ describe("watch", () => {
       let processes = yield* inspector(
         watch({
           path: fixture.path,
-          cmd: `deno run -A test/watch-graceful.ts`,
+          cmd: `deno run -A watch/test/watch-graceful.ts`,
         }),
       );
 
@@ -77,7 +77,7 @@ describe("watch", () => {
       yield* fixture.write("src/file.txt", "hello planet");
 
       yield* processes.expectNext();
-
+      
       expect(first.stdout).toEqual("done\n");
     });
 

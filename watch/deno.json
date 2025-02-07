@@ -18,5 +18,9 @@
     "rules": {
       "exclude": ["prefer-const", "require-yield"]
     }
+  },
+  "tasks": {
+    "compile": "deno compile --allow-env --allow-read --allow-run main.ts",
+    "dev": "deno --allow-env --allow-read --allow-run main.ts deno task compile"
   }
 }
