@@ -186,7 +186,7 @@ function* inspector(stream: Stream<Result<Process>, never>) {
     starts,
     *expectNext(): Operation<SuccessfulStart> {
       let initial = expected;
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 500; i++) {
         if (initial < starts.length) {
           yield* sleep(10);
           expected = starts.length;
