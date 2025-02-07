@@ -94,7 +94,8 @@ describe("watch", () => {
 import { watch } from "../watch.ts";
 import type { Process } from "../child-process.ts";
 import { cp, readFile, writeFile } from "node:fs/promises";
-import { join } from "@std/path";
+import { dirname, join } from "@std/path";
+import { ensureDir } from "@std/fs/ensure-dir";
 
 interface Fixture {
   path: string;
@@ -126,7 +127,11 @@ function* useFixture(): Operation<Fixture> {
       return join(path, filename);
     },
     write(filename: string, content: string) {
-      return call(() => writeFile(join(path, filename), content));
+      return call(async () => {
+        const dest = join(path, filename);
+        await ensureDir(dirname(dest));
+        await writeFile(join(path, filename), content);
+      });
     },
     *read(name) {
       return String(yield* call(() => readFile(join(path, name))));
@@ -195,7 +200,7 @@ function* inspector(stream: Stream<Result<Process>, never>) {
           }
         } else {
           yield* sleep(10);
- }
+        }
       }
       throw new Error(`expecting a sucessful start but it never appeared.`);
     },
