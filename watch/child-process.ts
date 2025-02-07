@@ -1,4 +1,6 @@
 import { spawn as nodeSpawn } from "node:child_process";
+import { Signals } from "npm:@types/node@16.18.126";
+
 import type { Operation, Stream } from "effection";
 import {
   action,
@@ -10,13 +12,13 @@ import {
 
 export interface ProcessResult {
   code: number;
-  signal?: NodeJS.Signals;
+  signal?: Signals;
 }
 
 export interface Process extends Operation<ProcessResult> {
   stdout: Stream<string, void>;
   stderr: Stream<string, void>;
-  send(signal: NodeJS.Signals): void;
+  send(signal: Signals): void;
 }
 
 export function useProcess(command: string): Operation<Process> {
@@ -50,7 +52,7 @@ export function useProcess(command: string): Operation<Process> {
     let onstderr = (chunk: unknown) => {
       stderr.send(String(chunk));
     };
-    let onclose = (code: number, signal?: NodeJS.Signals) => {
+    let onclose = (code: number, signal?: Signals) => {
       stdout.close();
       stderr.close();
       closed.resolve({ code, signal });

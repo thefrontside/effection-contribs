@@ -108,8 +108,8 @@ interface Fixture {
 }
 
 function* useFixture(): Operation<Fixture> {
-  let tmpDir = new URL(import.meta.resolve("./temp")).pathname;
-  let fixtureDir = new URL(import.meta.resolve("./fixtures")).pathname;
+  let tmpDir = new URL("./temp", import.meta.url).pathname;
+  let fixtureDir = new URL("./fixtures", import.meta.url).pathname;
   let path = join(tmpDir, "fixtures");
   yield* call(() => emptyDir(tmpDir));
 

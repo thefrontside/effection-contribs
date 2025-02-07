@@ -1,3 +1,6 @@
+import { exists } from "@std/fs";
+import { join, relative } from "@std/path";
+import chokidar, { type EmitArgsWithName } from "chokidar";
 import {
   call,
   createChannel,
@@ -10,15 +13,12 @@ import {
   spawn,
   type Stream,
 } from "effection";
-import { pipe } from "jsr:@gordonb/pipe";
-import chokidar, { type EmitArgsWithName } from "chokidar";
 import { default as createIgnore } from "ignore";
-
-import { debounce, filter } from "./stream-helpers.ts";
-import { type Process, useProcess } from "./child-process.ts";
-import { exists } from "@std/fs";
-import { join, relative } from "@std/path";
+import { pipe } from "jsr:@gordonb/pipe@0.1.0";
 import { readFile } from "node:fs/promises";
+
+import { type Process, useProcess } from "./child-process.ts";
+import { debounce, filter } from "./stream-helpers.ts";
 
 export interface Watch extends Stream<Result<Process>, never> {}
 
