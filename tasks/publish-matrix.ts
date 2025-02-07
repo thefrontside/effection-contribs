@@ -1,4 +1,4 @@
-import { call, main } from "effection";
+import { call, main } from "npm:effection@3.2.1";
 import { x } from "../tinyexec/mod.ts";
 import { readPackages } from "./lib/read-packages.ts";
 

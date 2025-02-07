@@ -1,4 +1,4 @@
-import { call, type Operation } from "effection";
+import { call, type Operation } from "npm:effection@3.2.1";
 import { resolve } from "jsr:@std/path@^1.0.6";
 import { z } from "npm:zod@3.23.8";
 
