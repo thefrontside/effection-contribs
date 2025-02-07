@@ -1,11 +1,11 @@
-# @frontside/watch
+# @effection-contrib/watch
 
 Watch is a very simple tool that does one thing: run a command, and every time
 source files change in a directory, shutdown the current invocation _gracefully_
 and restart it.
 
 ```
-deno -A jsr:@frontside/watch --command "npm start"
+deno -A jsr:@effection-contrib/watch --command "npm start"
 ```
 
 ## Graceful Shutdown
