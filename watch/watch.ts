@@ -42,8 +42,34 @@ export interface WatchOptions {
 }
 
 /**
- * Create a watch configuration that can be consumed as
- * a stream of process starts.
+ * Create a watch configuration that observes file system changes and executes a command
+ * when changes are detected. The watch can be consumed as a stream of process starts.
+ *
+ * @example
+ * ```ts
+ * const watcher = yield* watch({
+ *  path: './src',
+ *  cmd: 'npm test'
+ * });
+ * ```
+ *
+ * @param options - Configuration options for the watch
+ * @param options.path - The directory path to watch for changes
+ * @param options.cmd - The command to execute when changes are detected
+ * @param options.event - The type of event to watch for ('all' or 'change', defaults to 'all')
+ *
+ * @returns A Stream that emits Result<Process> for each command execution
+ *
+ * @remarks
+ * - Uses chokidar for file system watching
+ * - Respects .gitignore patterns if present
+ * - Implements debouncing to prevent rapid successive executions
+ * - Filters out stale events using the fresh() function
+ *
+ * @throws Will throw an error if the process execution fails
+ *
+ * @see {@link WatchOptions} for configuration options
+ * @see {@link Process} for process execution details
  */
 export function watch(options: WatchOptions): Watch {
   return resource(function* (provide) {

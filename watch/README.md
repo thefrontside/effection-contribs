@@ -21,3 +21,17 @@ be safely released before exiting.
 If you are running this command inside a git repository, it will only perform
 restarts on files that are under source control, or could be candidates for
 source control (not ignored).
+
+## Use it as a library
+
+```ts
+import { main } from "effection";
+import { watch } from "@effection-contrib/watch";
+
+await main(function* () {
+  const watcher = yield* watch({
+    path: "./src",
+    cmd: "npm test",
+  });
+});
+```
