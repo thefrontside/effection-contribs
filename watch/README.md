@@ -5,7 +5,7 @@ source files change in a directory, shutdown the current invocation _gracefully_
 and restart it.
 
 ```
-deno -A jsr:@effection-contrib/watch --command "npm start"
+deno -A jsr:@effection-contrib/watch npm start
 ```
 
 ## Graceful Shutdown

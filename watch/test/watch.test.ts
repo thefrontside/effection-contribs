@@ -77,7 +77,7 @@ describe("watch", () => {
       yield* fixture.write("src/file.txt", "hello planet");
 
       yield* processes.expectNext();
-      
+
       expect(first.stdout).toEqual("done\n");
     });
 

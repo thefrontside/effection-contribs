@@ -18,7 +18,7 @@ import { pipe } from "jsr:@gordonb/pipe@0.1.0";
 import { readFile } from "node:fs/promises";
 
 import { type Process, useProcess } from "./child-process.ts";
-import { debounce, filter } from "./stream-helpers.ts";
+import { debounce } from "./stream-helpers.ts";
 
 export interface Watch extends Stream<Result<Process>, never> {}
 
@@ -79,6 +79,11 @@ export function watch(options: WatchOptions): Watch {
     let gitignored = yield* findIgnores(options.path);
 
     let watcher = chokidar.watch(options.path, {
+      ignored: (path) => {
+        let relpath = relative(options.path, path);
+        let isGit = relpath === ".git" || relpath.startsWith(".git");
+        return isGit || gitignored(path);
+      },
       ignoreInitial: true,
     });
     let { event = "all" } = options;
@@ -86,8 +91,8 @@ export function watch(options: WatchOptions): Watch {
       if (event !== "all") {
         args.unshift(event);
       }
-
-      if (fresh(500)(args) && !gitignored(args)) {
+      let [, path] = args;
+      if (fresh(500)(args) && !gitignored(path)) {
         input.send(args);
       }
     });
@@ -123,14 +128,14 @@ export function watch(options: WatchOptions): Watch {
  * out any change events against paths that are matched by it
  */
 function* findIgnores(path: string): Operation<
-  (args: EmitArgsWithName) => boolean
+  (path: string) => boolean
 > {
   let gitignore = join(path, ".gitignore");
   if (yield* call(() => exists(gitignore))) {
     let ignores = createIgnore();
     let buffer = yield* call(() => readFile(gitignore));
     ignores.add(buffer.toString());
-    return ([, pathname]) => {
+    return (pathname) => {
       let relativePathname = relative(path, pathname).trim();
       return relativePathname !== "" && ignores.ignores(relativePathname);
     };
