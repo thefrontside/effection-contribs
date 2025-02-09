@@ -12,6 +12,7 @@ import {
   type Result,
   spawn,
   type Stream,
+  withResolvers,
 } from "effection";
 import { default as createIgnore } from "ignore";
 import { pipe } from "jsr:@gordonb/pipe@0.1.0";
@@ -19,6 +20,22 @@ import { readFile } from "node:fs/promises";
 
 import { type Process, useProcess } from "./child-process.ts";
 import { debounce } from "./stream-helpers.ts";
+
+/**
+ * Represents a single start of the specified command
+ */
+export interface Start {
+  /**
+   * A result containing the {Process} on a successful start, or
+   * an error otherwise.
+   */
+  result: Result<Process>;
+  /**
+   * An operation that resolves when the current start begins its
+   * shutdown.
+   */
+  restarting: Operation<void>;
+}
 
 export interface Watch extends Stream<Result<Process>, never> {}
 
@@ -71,9 +88,9 @@ export interface WatchOptions {
  * @see {@link WatchOptions} for configuration options
  * @see {@link Process} for process execution details
  */
-export function watch(options: WatchOptions): Watch {
+export function watch(options: WatchOptions): Stream<Start, never> {
   return resource(function* (provide) {
-    let starts = createChannel<Result<Process>, never>();
+    let starts = createChannel<Start, never>();
     let input = createSignal<EmitArgsWithName, never>();
 
     let gitignored = yield* findIgnores(options.path);
@@ -102,14 +119,22 @@ export function watch(options: WatchOptions): Watch {
     yield* spawn(function* () {
       while (true) {
         let task = yield* spawn(function* () {
+	  let restarting = withResolvers<void>();
           try {
             let process = yield* useProcess(options.cmd);
-            yield* starts.send(Ok(process));
+            yield* starts.send({
+	      result: Ok(process),
+	      restarting: restarting.operation
+	    });
           } catch (error) {
-            yield* starts.send(Err(error as Error));
+            yield* starts.send({
+	      result: Err(error as Error),
+	      restarting: restarting.operation
+	    });
           }
 
           yield* changes.next();
+	  restarting.resolve();
         });
         yield* task;
       }

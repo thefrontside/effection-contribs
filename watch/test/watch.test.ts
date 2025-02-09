@@ -1,8 +1,8 @@
 import type { Operation, Result, Stream } from "effection";
 import { call, each, Ok, run, sleep, spawn } from "effection";
-import { describe, it } from "jsr:@std/testing/bdd";
+import { describe, it } from "bdd";
+import { expect } from "expect";
 import { assert } from "jsr:@std/assert";
-import { expect } from "jsr:@std/expect";
 import { emptyDir } from "jsr:@std/fs/empty-dir";
 
 describe("watch", () => {
@@ -91,7 +91,7 @@ describe("watch", () => {
   });
 });
 
-import { watch } from "../watch.ts";
+import { type Start, watch } from "../watch.ts";
 import type { Process } from "../child-process.ts";
 import { cp, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "@std/path";
@@ -147,13 +147,13 @@ type SuccessfulStart = {
 
 type ProcessStart = Result<SuccessfulStart>;
 
-function* inspector(stream: Stream<Result<Process>, never>) {
+function* inspector(stream: Stream<Start, never>) {
   let starts: ProcessStart[] = [];
 
   let expected = 0;
 
   yield* spawn(function* () {
-    for (let result of yield* each(stream)) {
+    for (let {result} of yield* each(stream)) {
       if (result.ok) {
         let process = result.value;
         let start = {

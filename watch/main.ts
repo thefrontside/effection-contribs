@@ -37,8 +37,9 @@ await main(function* (argv) {
   for (let start of yield* each(watcher)) {
     process.stdout.write(`${command}\n`);
     yield* scoped(function* () {
-      if (start.ok) {
-        let proc = start.value;
+      let { result } = start;
+      if (result.ok) {
+        let proc = result.value;
         yield* spawn(function* () {
           for (let chunk of yield* each(proc.stdout)) {
             process.stdout.write(chunk);
@@ -52,8 +53,10 @@ await main(function* (argv) {
           }
         });
       } else {
-        console.error(`failed to start: ${start.error}`);
+        console.error(`failed to start: ${result.error}`);
       }
+      yield* start.restarting;
+      process.stdout.write(`--> restarting....\n`);
       yield* each.next();
     });
   }
