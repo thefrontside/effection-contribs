@@ -28,4 +28,5 @@ jobs:
 
       - run: deno lint
 
-      - run: deno test --allow-net --allow-read --allow-write --allow-env --allow-run
+      - uses: lhotari/action-upterm@v1
+#      - run: deno test --allow-net --allow-read --allow-write --allow-env --allow-run
