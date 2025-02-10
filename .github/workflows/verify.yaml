@@ -28,5 +28,5 @@ jobs:
 
       - run: deno lint
 
-      - uses: lhotari/action-upterm@v1
+      - uses: mxschmitt/action-tmate@v3
 #      - run: deno test --allow-net --allow-read --allow-write --allow-env --allow-run
