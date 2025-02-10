@@ -153,7 +153,7 @@ function* inspector(stream: Stream<Start, never>) {
   let expected = 0;
 
   yield* spawn(function* () {
-    for (let {result} of yield* each(stream)) {
+    for (let { result } of yield* each(stream)) {
       if (result.ok) {
         let process = result.value;
         let start = {

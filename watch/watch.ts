@@ -119,22 +119,22 @@ export function watch(options: WatchOptions): Stream<Start, never> {
     yield* spawn(function* () {
       while (true) {
         let task = yield* spawn(function* () {
-	  let restarting = withResolvers<void>();
+          let restarting = withResolvers<void>();
           try {
             let process = yield* useProcess(options.cmd);
             yield* starts.send({
-	      result: Ok(process),
-	      restarting: restarting.operation
-	    });
+              result: Ok(process),
+              restarting: restarting.operation,
+            });
           } catch (error) {
             yield* starts.send({
-	      result: Err(error as Error),
-	      restarting: restarting.operation
-	    });
+              result: Err(error as Error),
+              restarting: restarting.operation,
+            });
           }
 
           yield* changes.next();
-	  restarting.resolve();
+          restarting.resolve();
         });
         yield* task;
       }
