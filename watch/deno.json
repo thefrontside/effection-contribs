@@ -1,0 +1,26 @@
+{
+  "name": "@effection-contrib/watch",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./main.ts",
+    "./lib": "./mod.ts"
+  },
+  "imports": {
+    "effection": "npm:effection@^4.0.0-alpha.6",
+    "ignore": "npm:ignore@^7.0.3",
+    "@std/fs": "jsr:@std/fs@^1.0.11",
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "chokidar": "npm:chokidar@^4.0.3",
+    "zod": "npm:zod@^3.20.2",
+    "zod-opts": "npm:zod-opts@0.1.8"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["prefer-const", "require-yield"]
+    }
+  },
+  "tasks": {
+    "compile": "deno compile --allow-env --allow-read --allow-run main.ts",
+    "dev": "deno --allow-env --allow-read --allow-run main.ts deno task compile"
+  }
+}

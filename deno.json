@@ -1,8 +1,5 @@
 {
   "imports": {
-    "effection": "npm:effection@3.0.3",
-    "revolution": "https://deno.land/x/revolution@0.6.0/mod.ts",
-    "revolution/jsx-runtime": "https://deno.land/x/revolution@0.6.0/jsx-runtime.ts",
     "bdd": "jsr:@std/testing/bdd",
     "expect": "jsr:@std/expect"
   },
@@ -28,8 +25,9 @@
     "./jsonl-store",
     "./fx",
     "./task-buffer",
-    "./tinyexec",
     "./timebox",
+    "./tinyexec",
+    "./watch",
     "./websocket",
     "./worker"
   ]
